@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Gesture Symphony</title>
+<style>
+:root{--bg:#fff;--ink:#000;--mut:#555;--line:#000;--act:#000;--vi:#888;--key:#fff;--blk:#000;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#000;--ink:#fff;--mut:#aaa;--line:#fff;--act:#8a8a8a;--vi:#bbb}}
+:root[data-theme="dark"]{--bg:#000;--ink:#fff;--mut:#aaa;--line:#fff;--act:#8a8a8a;--vi:#bbb}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Helvetica Neue",Arial,sans-serif}
+header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;padding:16px 16px 8px;max-width:720px;margin:auto}
+h1{font:600 22px/1.2 "Helvetica Neue",Arial,sans-serif;margin:0}
+h2{font:600 15px "Helvetica Neue",Arial,sans-serif;margin:16px 0 6px}
+.sub{color:var(--mut);margin:2px 0 0;font-size:14px}
+.hi{margin:0;padding:4px 10px;border:1px solid var(--line);font-size:14px;text-align:right}
+main{display:grid;gap:12px;padding:8px 16px 28px;max-width:720px;margin:auto}
+section,details.more{border:1px solid var(--line);padding:12px}
+#waves{display:block;width:100%;height:240px}
+.stage{position:relative;aspect-ratio:4/3;max-width:360px;background:#000;overflow:hidden}
+.stage video,.stage canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.stage.mir video,.stage.mir canvas{transform:scaleX(-1)}
+.stage p{position:absolute;inset:auto 0 45% 0;text-align:center;color:#aaa;margin:0}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0 0}
+button,select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);padding:5px 12px;cursor:pointer}
+button.go{background:var(--ink);color:var(--bg)}
+button:focus-visible,select:focus-visible,input:focus-visible,.strip:focus-visible,summary:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+label{display:flex;gap:6px;align-items:center;color:var(--mut)}
+#status{margin:10px 0 0;min-height:1.5em}
+.now{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.card{border:1px solid var(--line);padding:8px 10px}
+.card.live{background:var(--ink);color:var(--bg)}
+.card.live .mut{color:var(--bg)}
+.big{font:600 28px "Helvetica Neue",Arial,sans-serif;min-height:1.3em}
+.mut{color:var(--mut);font-size:13px;margin:2px 0 0}
+#kb{position:relative;display:flex;height:130px;user-select:none;touch-action:none}
+.wk{flex:1;background:#fff;border:1px solid #000;border-top:0;position:relative;color:#000}
+.wk i{position:absolute;bottom:3px;left:0;right:0;text-align:center;font-size:10px;font-style:normal}
+.bk{position:absolute;top:0;width:2.8%;height:62%;background:#000;z-index:2;border:1px solid #888}
+.on{background:var(--act)!important}
+.bk.on{background:#777!important}
+.vi{box-shadow:inset 0 -14px 0 var(--vi)}
+.tg{outline:3px dashed var(--ink);outline-offset:-3px}
+.strip{display:flex;flex-direction:column-reverse;height:240px;border:1px solid var(--line);overflow:hidden;touch-action:none;cursor:ns-resize}
+.strip div{flex:1;font-size:12px;padding:0 10px;display:flex;align-items:center;border-top:1px solid var(--line);color:var(--mut)}
+.strip div.cur{background:var(--ink);color:var(--bg);font-weight:600}
+.sl{display:grid;grid-template-columns:auto 1fr;gap:6px 10px;align-items:center}
+table{border-collapse:collapse;width:100%;font-size:14px}th,td{padding:3px;text-align:center}
+summary{cursor:pointer}
+@media(max-width:520px){.now{grid-template-columns:1fr}}
+body{overflow:hidden;height:100vh;height:100dvh;color:#fff;background:#000}
+header{position:fixed;top:env(safe-area-inset-top,0px);left:0;right:0;max-width:none;margin:0;z-index:3;color:#fff;text-shadow:0 1px 4px #000;pointer-events:none}
+.sub{color:#ddd}
+.hi{background:rgba(0,0,0,.55);border-color:#fff;text-shadow:none}
+.stage{position:fixed;inset:0;max-width:none;aspect-ratio:auto;z-index:0}
+#waves{position:fixed;inset:0;width:100%;height:100%;z-index:1;pointer-events:none}
+.ui .mut,.ui label{color:#ddd}
+.ui button,.ui select{background:#000;color:#fff;border-color:#fff}
+.ui button.go{background:#fff;color:#000}
+.ui *:focus-visible{outline-color:#fff}
+.ui .card{border-color:#fff}.ui .card.live{background:#fff;color:#000}.ui .card.live .mut{color:#000}
+.ui input[type=color]{width:36px;height:28px;padding:0;border:1px solid #fff;background:none}
+.ui .big{font-size:22px}.ui .now{margin-top:6px}
+.ui #kb{height:84px}
+.ui .more{border:0;padding:0;margin-top:6px}
+.ui .strip{border-color:#fff}.ui .strip div{border-color:#555;color:#ddd}.ui .strip div.cur{background:#fff;color:#000}
+.ui table{color:#fff}
+.ui{position:fixed;top:64px;right:8px;width:150px;max-height:calc(100dvh - 80px);overflow:auto;z-index:3;padding:8px;font-size:12px;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.4);color:#fff;backdrop-filter:blur(4px)}
+.ui:has(.more[open]){width:min(92vw,420px)}
+.ui summary{cursor:pointer;font-weight:600}
+.ui button{padding:3px 8px;font-size:12px}
+.ui h2{font-size:12px;margin:10px 0 4px}
+.ui .card{padding:3px 6px;margin-top:6px}
+.ui .card b{font-size:13px}
+.ui #status{margin:6px 0 0;min-height:0}
+.ui .mut{font-size:11px;margin:4px 0 0}
+.guide{position:fixed;top:64px;left:8px;width:150px;z-index:2;font-size:11px;color:#fff;text-shadow:0 1px 3px #000;pointer-events:none}
+.guide .mut{color:#ddd}
+.guide #gp,.guide .strip{pointer-events:auto}
+#gp{display:grid;grid-template-columns:22px repeat(5,1fr);gap:2px;margin:4px 0 10px}
+#gp div{border:1px solid rgba(255,255,255,.35);height:22px;display:flex;align-items:center;justify-content:center;font-size:10px;cursor:pointer;touch-action:none}
+#gp .h{border:0;cursor:default;color:#ddd}
+#gp .on2{background:rgba(255,255,255,.45)}
+#gp .reg{border-color:#fff}
+.guide .strip{height:285px;margin-top:4px;border:1px solid rgba(255,255,255,.35);background:transparent}
+.guide .strip div{border-top:1px solid rgba(255,255,255,.25);color:#fff;padding:0 8px}
+.guide .strip div.cur{background:rgba(255,255,255,.45);color:#fff}
+@media(max-width:520px){.ui,.guide{top:78px}}
+</style></head><body>
+<div class="stage mir" id="stage"><video id="v" playsinline muted></video><canvas id="cv"></canvas><p id="ph">Camera off. Tap Start camera.</p></div>
+<canvas id="waves" aria-label="Sound lines: flat when silent, taller waves for higher pitch"></canvas>
+<header>
+<div><h1>Gesture Symphony</h1><p class="sub">Demo</p></div>
+<p class="hi">hi honeeyyy enjoyyy luv u ♥</p>
+</header>
+<aside class="guide" aria-label="Note guide">
+<b>Piano</b><span class="mut"> left hand, fingers</span>
+<div id="gp"></div>
+<b>Violin</b><span class="mut"> right hand, height</span>
+<div class="strip" id="strip" tabindex="0" aria-label="Violin notes: press and drag up or down to play"></div>
+</aside>
+<div class="ui"><details class="menu" open><summary>Menu</summary>
+<div class="row"><button class="go" id="start">Start</button><button id="stop">Stop</button></div>
+<div class="row"><label>Piano <input type="color" id="c1" value="#ffffff" aria-label="Piano line color"></label><label>Violin <input type="color" id="c2" value="#cccccc" aria-label="Violin line color"></label></div>
+<p id="status" role="status" aria-live="polite">Camera not started.</p>
+<div class="card" id="cp">Piano <b id="pn">—</b></div>
+<div class="card" id="cvn">Violin <b id="vn">—</b></div>
+<p class="mut" id="gl">Left hand not detected</p><p class="mut" id="gr">Right hand not detected</p>
+<details class="more"><summary>More options</summary>
+<div class="row"><button id="sw">Switch camera</button><label><input type="checkbox" id="mir" checked>Mirror</label><label><input type="checkbox" id="ov" checked>Landmarks</label><label><input type="checkbox" id="swap">Swap sides</label></div>
+<div class="sl"><span>Piano volume</span><input type="range" id="pv" min="0" max="1" step=".01" value=".8" aria-label="Piano volume"><span>Violin volume</span><input type="range" id="vv" min="0" max="1" step=".01" value=".8" aria-label="Violin volume"></div>
+<label><input type="checkbox" id="vib" checked>Violin vibrato</label>
+<h2>Keyboard</h2><div id="kb" aria-label="Virtual piano"></div>
+<h2>Finger notes</h2><table id="map"></table><div class="row"><button id="mapreset">Reset mapping</button></div>
+<h2>Practice</h2>
+<div class="row"><label>Mode <select id="pm"><option value="piano">Piano only</option><option value="violin">Violin only</option><option value="both">Together</option></select></label><button id="pr">Reset</button></div>
+<p class="big" id="pt"></p><p class="mut" id="fbp"></p><p class="mut" id="fbv"></p>
+</details>
+</details></div>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/hands.js" crossorigin="anonymous" onerror="window.HF=1"></script>
+<script>
+const $=s=>document.querySelector(s),clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+const NN=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const nm=m=>NN[m%12]+(Math.floor(m/12)-1),hz=m=>440*2**((m-69)/12);
+const FN=['Thumb','Index','Middle','Ring','Pinky'],BN=['Low','Mid','High'];
+const DEF=[[48,50,52,53,55],[60,62,64,65,67],[69,71,72,74,76]];
+let map=JSON.parse(JSON.stringify(DEF));
+try{const s=JSON.parse(localStorage.getItem('gs-map'));if(s&&s.length==3)map=s}catch(e){}
+const SC=[55,57,59,60,62,64,65,67,69,71,72,74,76,77,79],ODE=[64,64,65,67,67,65,64,62,60,60,62,64,64,62,62],UP=[60,62,64,65,67];
+const act=new Map(),V={cam:false,man:false,midi:67,idx:7,expr:.7};
+let an,ac,pBus,vBus,vGain,vFilt,lfoG,vOsc=[];
+
+/* ---------- audio ---------- */
+function initAudio(){
+ if(ac){if(ac.state!=='running')ac.resume();return}
+ ac=new(window.AudioContext||window.webkitAudioContext)();
+ const comp=ac.createDynamicsCompressor();comp.connect(ac.destination);an=ac.createAnalyser();an.fftSize=512;comp.connect(an);
+ pBus=ac.createGain();pBus.gain.value=+$('#pv').value;pBus.connect(comp);
+ vBus=ac.createGain();vBus.gain.value=+$('#vv').value;vBus.connect(comp);
+ vFilt=ac.createBiquadFilter();vFilt.type='lowpass';vFilt.frequency.value=2400;vFilt.Q.value=.7;
+ vGain=ac.createGain();vGain.gain.value=0;vFilt.connect(vGain);vGain.connect(vBus);
+ const lfo=ac.createOscillator();lfo.frequency.value=5.5;lfoG=ac.createGain();lfoG.gain.value=0;lfo.connect(lfoG);lfo.start();
+ [-6,6].forEach(d=>{const o=ac.createOscillator();o.type='sawtooth';o.detune.value=d;o.frequency.value=220;lfoG.connect(o.detune);o.connect(vFilt);o.start();vOsc.push(o)});
+}
+function piano(m){
+ initAudio();const t=ac.currentTime,f=hz(m),D=Math.max(.9,2.6-(m-40)*.03);
+ const g=ac.createGain(),lp=ac.createBiquadFilter();lp.type='lowpass';lp.frequency.value=Math.min(6000,f*6);
+ g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.55,t+.006);g.gain.exponentialRampToValueAtTime(.001,t+D);
+ [[1,'triangle',1],[2,'sine',.35],[3,'sine',.12]].forEach(([k,ty,a])=>{
+  const o=ac.createOscillator(),og=ac.createGain();o.type=ty;o.frequency.value=f*k;og.gain.value=a*.5;
+  o.connect(og);og.connect(lp);o.start(t);o.stop(t+D+.05);o.onended=()=>{o.disconnect();og.disconnect()}});
+ lp.connect(g);g.connect(pBus);setTimeout(()=>{g.disconnect();lp.disconnect()},(D+.2)*1000);
+}
+function vSet(){
+ if(!ac)return;const t=ac.currentTime,on=V.cam||V.man;
+ vOsc.forEach(o=>o.frequency.setTargetAtTime(hz(V.midi),t,.04));
+ vGain.gain.setTargetAtTime(on?.35*V.expr:0,t,on?.05:.15);
+ lfoG.gain.setTargetAtTime($('#vib').checked?9:0,t,.1);
+ vFilt.frequency.setTargetAtTime(1200+V.expr*2200,t,.1);
+}
+$('#pv').oninput=e=>{if(pBus)pBus.gain.value=+e.target.value};
+$('#vv').oninput=e=>{if(vBus)vBus.gain.value=+e.target.value};
+$('#vib').onchange=vSet;
+
+/* ---------- display ---------- */
+const kb=$('#kb');let wi=0;
+for(let m=48;m<84;m++){const k=document.createElement('div');k.dataset.m=m;
+ if([1,3,6,8,10].includes(m%12)){k.className='bk';k.style.left=(wi*100/21-1.4)+'%'}
+ else{k.className='wk';if(m%12==0)k.innerHTML='<i>'+nm(m)+'</i>';wi++}
+ kb.appendChild(k)}
+const gp=$('#gp');
+function buildGuide(){
+ let h='<div class="h"></div>'+['T','I','M','R','P'].map(x=>'<div class="h">'+x+'</div>').join('');
+ for(let b=2;b>=0;b--)h+='<div class="h">'+['Lo','Mid','Hi'][b]+'</div>'+map[b].map(m=>'<div data-m="'+m+'" data-b="'+b+'">'+nm(m)+'</div>').join('');
+ gp.innerHTML=h;
+}
+gp.onpointerdown=e=>{const c=e.target.closest('[data-m]');if(!c)return;initAudio();gp.setPointerCapture(e.pointerId);pOn('g'+e.pointerId,+c.dataset.m)};
+gp.onpointerup=gp.onpointercancel=e=>pOff('g'+e.pointerId);
+const strip=$('#strip');SC.forEach(m=>{const d=document.createElement('div');d.textContent=nm(m);strip.appendChild(d)});
+let gL='Left hand not detected',gR='Right hand not detected';
+function ui(){
+ const am=new Set(act.values()),vg=V.cam||V.man,tp=tgtP();
+ kb.querySelectorAll('[data-m]').forEach(k=>{const m=+k.dataset.m;k.classList.toggle('on',am.has(m));k.classList.toggle('vi',vg&&V.midi===m);k.classList.toggle('tg',tp===m)});
+ gp.querySelectorAll('[data-m]').forEach(c=>{c.classList.toggle('on2',am.has(+c.dataset.m));c.classList.toggle('reg',+c.dataset.b===bank)});
+ [...strip.children].forEach((d,i)=>d.classList.toggle('cur',vg&&i===V.idx));
+ $('#pn').textContent=[...am].sort((a,b)=>a-b).map(nm).join(' ')||'—';
+ $('#vn').textContent=vg?nm(V.midi):'—';
+ $('#cp').classList.toggle('live',am.size>0);$('#cvn').classList.toggle('live',vg);
+ $('#gl').textContent=gL;$('#gr').textContent=gR;
+ const tv=tgtV();$('#pt').textContent=(tp?'Piano: '+nm(tp)+'  ':'')+(tv?'Violin: '+nm(tv):'');
+}
+
+/* ---------- piano state ---------- */
+const fs=Array(5).fill(false),cnt=Array(5).fill(0),last=Array(5).fill(0);let bank=1,sy=null;
+function pOn(src,m){if(act.has(src))return;act.set(src,m);piano(m);pcheck(m);ui()}
+function pOff(src){if(act.delete(src))ui()}
+function handPiano(lm){
+ sy=sy==null?lm[0].y:sy*.6+lm[0].y*.4;
+ if(bank==1){if(sy<.34)bank=2;else if(sy>.66)bank=0}else if(bank==2){if(sy>.42)bank=1}else if(sy<.58)bank=1;
+ const tips=[4,8,12,16,20],pips=[3,6,10,14,18],now=performance.now();
+ for(let i=0;i<5;i++){
+  const r=i?dist(lm[tips[i]],lm[0])/dist(lm[pips[i]],lm[0]):dist(lm[4],lm[17])/dist(lm[3],lm[17]);
+  const was=fs[i],raw=was?r>(i?1.0:1.05):r>(i?1.12:1.2);
+  cnt[i]=clamp(cnt[i]+(raw?1:-1),-3,3);
+  if(!was&&cnt[i]>=3&&now-last[i]>120){fs[i]=true;last[i]=now;pOn('f'+i,map[bank][i])}
+  else if(was&&cnt[i]<=-3){fs[i]=false;pOff('f'+i)}}
+ const up=FN.filter((_,i)=>fs[i]);
+ gL=BN[bank]+' register · '+(up.length?up.join(' + ')+' → '+[...act].filter(([k])=>k[0]=='f').map(([,m])=>nm(m)).join(' '):'no fingers raised');
+}
+function relLeft(){fs.fill(false);cnt.fill(0);for(let i=0;i<5;i++)act.delete('f'+i);gL='Left hand not detected'}
+
+/* ---------- violin state ---------- */
+let vc=0,sry=null,srx=null;
+function setIdx(f){if(V.idx==null||Math.abs(f-V.idx)>.65)V.idx=Math.round(f);V.midi=SC[V.idx]}
+function handVio(lm){
+ const pr=dist(lm[4],lm[8])/dist(lm[0],lm[9]);
+ sry=sry==null?lm[0].y:sry*.65+lm[0].y*.35;srx=srx==null?lm[0].x:srx*.65+lm[0].x*.35;
+ const raw=V.cam?pr<.75:pr<.45;vc=clamp(vc+(raw?1:-1),-2,2);
+ if(vc>=2)V.cam=true;else if(vc<=-2)V.cam=false;
+ setIdx((1-clamp((sry-.15)/.65,0,1))*(SC.length-1));
+ V.expr=.4+.6*clamp(1-srx,0,1);
+ gR=V.cam?'Bowing · '+nm(V.midi):'Pinch thumb and index to bow';
+ vSet();vcheck();
+}
+function relRight(){V.cam=false;vc=0;gR='Right hand not detected';vSet()}
+strip.onpointerdown=e=>{initAudio();strip.setPointerCapture(e.pointerId);V.man=true;sm(e)};
+strip.onpointermove=e=>{if(V.man)sm(e)};
+strip.onpointerup=strip.onpointercancel=()=>{V.man=false;vSet();ui()};
+function sm(e){const r=strip.getBoundingClientRect();V.idx=null;setIdx((1-clamp((e.clientY-r.top)/r.height,0,1))*(SC.length-1));V.expr=.4+.6*clamp((e.clientX-r.left)/r.width,0,1);vSet();vcheck();ui()}
+
+/* ---------- manual piano ---------- */
+const ptr=new Map();
+kb.onpointerdown=e=>{const k=e.target.closest('[data-m]');if(!k)return;initAudio();kb.setPointerCapture(e.pointerId);ptr.set(e.pointerId,'m'+e.pointerId);pOn('m'+e.pointerId,+k.dataset.m)};
+kb.onpointerup=kb.onpointercancel=e=>{pOff('m'+e.pointerId);ptr.delete(e.pointerId)};
+const KEYS={a:60,s:62,d:64,f:65,g:67,h:69,j:71,k:72};
+addEventListener('keydown',e=>{const m=KEYS[e.key];if(m&&!e.repeat&&!e.target.closest('select,input')){initAudio();pOn('k'+e.key,m)}});
+addEventListener('keyup',e=>{if(KEYS[e.key])pOff('k'+e.key)});
+addEventListener('blur',()=>{[...act.keys()].filter(k=>k[0]!='f').forEach(k=>act.delete(k));V.man=false;vSet();ui()});
+
+/* ---------- practice ---------- */
+let pm='piano',ps=0,vHold=0;
+const tgtP=()=>pm=='violin'?null:ODE[ps],tgtV=()=>pm=='violin'?UP[ps]:pm=='both'?55:null;
+const setT=(id,t)=>{if($(id).textContent!==t)$(id).textContent=t};
+function pcheck(m){if(pm=='violin')return;const t=ODE[ps];
+ if(m===t){ps++;if(ps>=ODE.length){ps=0;setT('#fbp','Melody complete! Starting over.')}else setT('#fbp','Correct. Next: '+nm(ODE[ps]))}
+ else setT('#fbp','Expected '+nm(t)+', heard '+nm(m))}
+function vcheck(){const t=tgtV();if(t==null)return;const vg=V.cam||V.man,n=performance.now();
+ if(!vg){vHold=0;return}
+ if(V.midi!==t){vHold=0;setT('#fbv','Violin: expected '+nm(t)+', playing '+nm(V.midi));return}
+ if(!vHold)vHold=n;
+ if(n-vHold>500){if(pm=='violin'){vHold=0;ps++;if(ps>=UP.length){ps=0;setT('#fbv','Scale complete! Starting over.')}else setT('#fbv','Correct. Next: '+nm(UP[ps]));ui()}else setT('#fbv','Violin: holding '+nm(t)+' ✓')}
+ else setT('#fbv','Violin: hold '+nm(t)+'…')}
+function pReset(){pm=$('#pm').value;ps=0;vHold=0;setT('#fbp','');setT('#fbv','');ui()}
+$('#pm').onchange=$('#pr').onclick=pReset;
+
+/* ---------- mapping UI ---------- */
+function buildMap(){
+ const o=m=>{let s='';for(let k=36;k<=84;k++)s+='<option value="'+k+'"'+(k===m?' selected':'')+'>'+nm(k)+'</option>';return s};
+ buildGuide();$('#map').innerHTML='<tr><th></th>'+FN.map(f=>'<th>'+f+'</th>').join('')+'</tr>'+map.map((r,b)=>'<tr><th>'+BN[b]+'</th>'+r.map((m,i)=>'<td><select data-b="'+b+'" data-i="'+i+'" aria-label="'+BN[b]+' '+FN[i]+'">'+o(m)+'</select></td>').join('')+'</tr>').join('');
+}
+$('#map').onchange=e=>{const s=e.target;map[+s.dataset.b][+s.dataset.i]=+s.value;buildGuide();try{localStorage.setItem('gs-map',JSON.stringify(map))}catch(x){}};
+$('#mapreset').onclick=()=>{map=JSON.parse(JSON.stringify(DEF));try{localStorage.removeItem('gs-map')}catch(x){}buildMap()};
+
+/* ---------- camera + tracking ---------- */
+const vid=$('#v'),cv=$('#cv'),cx=cv.getContext('2d');
+const CON=[[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],[13,17],[17,18],[18,19],[19,20],[0,17]];
+let stream,hands,running=false,busy=false,raf,devs=[],di=0;const seen={Left:0,Right:0};
+const status=t=>{$('#status').textContent=t};
+async function startCam(){
+ if(running)return;initAudio();status('Requesting camera permission…');
+ try{
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw 0;
+  stream=await navigator.mediaDevices.getUserMedia({video:devs[di]?{deviceId:{exact:devs[di]},width:640,height:480}:{facingMode:'user',width:640,height:480},audio:false});
+  vid.srcObject=stream;await vid.play();cv.width=vid.videoWidth||640;cv.height=vid.videoHeight||480;$('#ph').hidden=true;
+  devs=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind=='videoinput').map(d=>d.deviceId);
+ }catch(e){status('Camera unavailable or permission denied. Use manual mode: click the keys or the violin strip.');stopCam(true);return}
+ if(typeof Hands==='undefined'){status('Camera ready, but the hand-tracking library did not load. Use manual mode.');return}
+ try{
+  if(!hands){hands=new Hands({locateFile:f=>'https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/'+f});
+   hands.setOptions({maxNumHands:2,modelComplexity:1,minDetectionConfidence:.5,minTrackingConfidence:.5});hands.onResults(onRes)}
+  status('Loading hand-tracking model…');await hands.initialize();
+ }catch(e){status('Hand tracking could not load (network or blocked). Camera is on, use manual mode.');hands=null;return}
+ running=true;status('Camera ready.');loop();
+}
+async function loop(){
+ if(!running)return;
+ if(!busy&&vid.readyState>=2){busy=true;try{await hands.send({image:vid})}catch(e){running=false;status('Hand tracking stopped unexpectedly. Restart the camera.');busy=false;return}busy=false}
+ raf=requestAnimationFrame(loop);
+}
+function stopCam(quiet){
+ running=false;cancelAnimationFrame(raf);
+ if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}
+ vid.srcObject=null;cx.clearRect(0,0,cv.width,cv.height);$('#ph').hidden=false;
+ if(hands){try{hands.close()}catch(e){}hands=null}
+ relLeft();relRight();ui();if(!quiet)status('Camera not started.');
+}
+function onRes(r){
+ const now=performance.now(),f={};cx.clearRect(0,0,cv.width,cv.height);
+ const hs=(r.multiHandLandmarks||[]).map(lm=>({lm,x:1-lm[0].x})).sort((p,q)=>p.x-q.x).slice(0,2);
+ hs.forEach((h,i)=>{
+  let role=hs.length==2?(i?'Right':'Left'):(h.x<.5?'Left':'Right');if($('#swap').checked)role=role=='Left'?'Right':'Left';
+  f[role]=h.lm;seen[role]=now;if($('#ov').checked)draw(h.lm,role=='Left'?'#fff':'#aaa');
+  role=='Left'?handPiano(h.lm):handVio(h.lm)});
+ if(!f.Left&&now-seen.Left>300)relLeft();
+ if(!f.Right&&now-seen.Right>300)relRight();
+ const n=Object.keys(f).length;status(n==2?'Both hands detected.':n==1?'One hand detected.':'Show an open hand, 40–80 cm away, in good light.');ui();
+}
+function draw(lm,c){
+ const W=cv.width,H=cv.height;cx.strokeStyle=c;cx.fillStyle=c;cx.lineWidth=3;cx.beginPath();
+ CON.forEach(([a,b])=>{cx.moveTo(lm[a].x*W,lm[a].y*H);cx.lineTo(lm[b].x*W,lm[b].y*H)});cx.stroke();
+ lm.forEach(p=>{cx.beginPath();cx.arc(p.x*W,p.y*H,4,0,7);cx.fill()});
+}
+$('#start').onclick=startCam;$('#stop').onclick=()=>stopCam();
+$('#sw').onclick=async()=>{if(devs.length<2){status('No other camera found.');return}di=(di+1)%devs.length;stopCam(true);await startCam()};
+$('#mir').onchange=e=>$('#stage').classList.toggle('mir',e.target.checked);
+addEventListener('pagehide',()=>stopCam(true));
+/* ---------- lines ---------- */
+const wc=$('#waves'),wx=wc.getContext('2d'),still=matchMedia('(prefers-reduced-motion:reduce)').matches;
+const L=[{e:0,ph:0,m:60},{e:0,ph:0,m:67}];
+function wsize(){wc.width=wc.clientWidth;wc.height=wc.clientHeight}wsize();
+function waves(){
+ if(wc.width!==wc.clientWidth||wc.height!==wc.clientHeight)wsize();
+ const W=wc.width,H=wc.height;
+ const am=[...act.values()],src=[am.length?am.reduce((a,b)=>a+b)/am.length:null,(V.cam||V.man)?V.midi:null];
+ wx.clearRect(0,0,W,H);
+ wx.save();wx.globalAlpha=.35;wx.strokeStyle=wx.fillStyle='#fff';wx.setLineDash([6,8]);wx.beginPath();wx.moveTo(W/2,0);wx.lineTo(W/2,H);wx.stroke();wx.restore();
+ wx.save();wx.globalAlpha=.75;wx.fillStyle='#fff';wx.textAlign='center';wx.font='12px Helvetica,Arial,sans-serif';wx.fillText('left hand: piano',W*.25,H-12);wx.fillText('right hand: violin',W*.75,H-12);wx.restore();wx.shadowColor='rgba(0,0,0,.6)';wx.shadowBlur=4;wx.font='12px Helvetica,Arial,sans-serif';
+ src.forEach((m,i)=>{
+  const o=L[i];if(m!=null)o.m=m;wx.strokeStyle=wx.fillStyle=$('#c'+(i+1)).value;
+  o.e+=((m!=null?1:0)-o.e)*(m!=null?.2:.08);
+  const y0=H*(i?.42:.2),t=clamp((o.m-40)/45,0,1),amp=o.e*(6+t*H*.1),k=.012+t*.06;
+  o.ph+=still?0:.15+t*.25;
+  wx.fillText(i?'Violin':'Piano',8,y0-8);
+  wx.beginPath();wx.lineWidth=3;
+  for(let x=0;x<=W;x+=3){const y=y0+Math.sin(x*k+o.ph)*amp*Math.sin(Math.PI*x/W);x?wx.lineTo(x,y):wx.moveTo(x,y)}
+  wx.stroke();
+ });
+ requestAnimationFrame(waves);
+}
+waves();
+['c1','c2'].forEach(id=>{try{const v=localStorage.getItem('gs-'+id);if(v)$('#'+id).value=v}catch(e){}$('#'+id).oninput=e=>{try{localStorage.setItem('gs-'+id,e.target.value)}catch(x){}}});
+buildMap();ui();
+</script></body></html>
